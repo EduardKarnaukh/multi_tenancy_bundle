@@ -34,6 +34,9 @@ class DbSwitchEventListener implements EventSubscriberInterface
         $dbConfig = $this->dbConfigService->findDbConfig($switchDbEvent->getDbIndex());
         $tenantConnection = $this->container->get('doctrine')->getConnection('tenant');
         $params = [
+            'driver' => $dbConfig->getDbDriver(),
+            'host' => $dbConfig->getDbHost(),
+            'port' => $dbConfig->getDbPort(),
             'dbname' => $dbConfig->getDbName(),
             'user' => $dbConfig->getDbUsername() ?? $this->parseDatabaseUrl($this->databaseURL)['user'],
             'password' => $dbConfig->getDbPassword() ?? $this->parseDatabaseUrl($this->databaseURL)['password'],

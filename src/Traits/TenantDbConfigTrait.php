@@ -20,6 +20,15 @@ trait TenantDbConfigTrait
     #[ORM\Column(type: 'string', length: 255, nullable: true, options: ["default" => null])]
     protected ?string $dbPassword = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ["default" => null])]
+    private ?string $dbHost = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ["default" => null])]
+    private ?string $dbPort = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true, options: ["default" => null])]
+    private ?string $dbDriver = null;
+
     #[ORM\Column(type: 'string', length: 255, enumType: DatabaseStatusEnum::class, options: ["default" => DatabaseStatusEnum::DATABASE_NOT_CREATED])]
     private DatabaseStatusEnum $databaseStatus = DatabaseStatusEnum::DATABASE_NOT_CREATED;
 
@@ -92,6 +101,63 @@ trait TenantDbConfigTrait
     public function setDatabaseStatus(DatabaseStatusEnum $databaseStatus): self
     {
         $this->databaseStatus = $databaseStatus;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDbHost(): ?string
+    {
+        return $this->dbHost;
+    }
+
+    /**
+     * @param string $dbHost
+     * @return \App\Entity\Main\TenantDbConfig|TenantDbConfigTrait
+     */
+    public function setDbHost(string $dbHost): self
+    {
+        $this->dbHost = $dbHost;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDbPort(): ?string
+    {
+        return $this->dbPort;
+    }
+
+    /**
+     * @param string $dbPort
+     * @return \App\Entity\Main\TenantDbConfig|TenantDbConfigTrait
+     */
+    public function setDbPort(string $dbPort): self
+    {
+        $this->dbPort = $dbPort;
+
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getDbDriver(): ?string
+    {
+        return $this->dbDriver;
+    }
+
+    /**
+     * @param string $driver
+     * @return \App\Entity\Main\TenantDbConfig|TenantDbConfigTrait
+     */
+    public function setDbDriver(string $dbDriver): self
+    {
+        $this->dbDriver = $dbDriver;
+
         return $this;
     }
 }
