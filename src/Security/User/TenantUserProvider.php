@@ -2,11 +2,13 @@
 
 namespace Hakam\MultiTenancyBundle\Security\User;
 
+use App\Service\Tenant\TenantSwitchService;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\Mapping\ClassMetadata;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Persistence\ObjectRepository;
 use Doctrine\Persistence\Proxy;
+use Hakam\MultiTenancyBundle\Doctrine\ORM\TenantEntityManager;
 use Hakam\MultiTenancyBundle\Model\TenantEntityInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
@@ -23,7 +25,13 @@ class TenantUserProvider implements UserProviderInterface, PasswordUpgraderInter
     private string $class;
     private ?string $property;
 
-    public function __construct(ManagerRegistry $registry, string $classOrAlias, string $property = null, string $managerName = null)
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly TenantSwitchService $switchService,
+        string $classOrAlias,
+        string $property = null,
+        string $managerName = null
+    )
     {
         $this->registry = $registry;
         $this->managerName = $managerName;
@@ -33,7 +41,9 @@ class TenantUserProvider implements UserProviderInterface, PasswordUpgraderInter
 
     public function loadUserByIdentifier(string $identifier): UserInterface
     {
-        $repository = $this->getRepository();
+        $this->switchService->process();
+
+        $repository = $this->registry->getManager('tenant')->getRepository($this->classOrAlias);
         if (null !== $this->property) {
             $user = $repository->findOneBy([$this->property => $identifier]);
         } else {
