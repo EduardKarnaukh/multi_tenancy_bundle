@@ -3,7 +3,10 @@
 namespace Hakam\MultiTenancyBundle\Command;
 
 use Doctrine\Bundle\DoctrineBundle\Command\Proxy\UpdateSchemaDoctrineCommand;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\Tools\Console\Command\SyncMetadataCommand;
 use Doctrine\ORM\EntityManagerInterface;
+use Hakam\MultiTenancyBundle\Doctrine\ORM\TenantEntityManager;
 use Hakam\MultiTenancyBundle\Event\SwitchDbEvent;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
@@ -17,15 +20,17 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 #[AsCommand(
-    name: 'tenant:schema:update',
-    description: 'Proxy to launch doctrine:schema:update with custom databases.',
+    name: 'tenant:migrations:sync-metadata-storage',
+    description: 'Proxy to launch doctrine:migrations:sync-metadata-storage with custom databases.',
 )]
-final class UpdateSchemaCommand extends Command
+final class SyncMetadataSchemaCommand extends Command
 {
     public function __construct(
+        private readonly ?DependencyFactory $dependencyFactory = null,
         private readonly ContainerInterface $container,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly EntityManagerInterface $entityManager,
+        ?string $name = null
     ) {
         parent::__construct();
     }
@@ -40,10 +45,7 @@ final class UpdateSchemaCommand extends Command
         $io = new SymfonyStyle($input, $output);
 
         $newInput = new ArrayInput([
-            'command' => 'doctrine:schema:update',
-            '--force' => null,
-            '--complete' => null,
-//            '--dump-sql' => null,
+            'command' => 'doctrine:migrations:sync-metadata-storage',
             '--em' => 'tenant'
         ]);
 
@@ -57,17 +59,16 @@ final class UpdateSchemaCommand extends Command
 
         try {
             $newInput->setInteractive($input->isInteractive());
-
             $switchEvent = new SwitchDbEvent($tenant->getId());
             $this->eventDispatcher->dispatch($switchEvent);
-
-            $otherCommand = new UpdateSchemaDoctrineCommand();
+            $otherCommand = new SyncMetadataCommand($this->dependencyFactory);
 
             $otherCommand->setApplication(new Application($this->container->get('kernel')));
             $otherCommand->run($newInput, $output);
-            $io->success(sprintf('Tenant database %s updated', $tenant->getDbName()));
+            $io->success(sprintf('Tenant database %s synced', $tenant->getDbName()));
         } catch (\Exception $e) {
-            $io->error(sprintf('Tenant database %s not updated: %s',  $tenant->getDbName(), $e->getMessage()));
+            $io->error(sprintf('Tenant database %s not synced: %s',  $tenant->getDbName(), $e->getMessage()));
+            return Command::FAILURE;
         }
 
         return Command::SUCCESS;
