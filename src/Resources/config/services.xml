@@ -54,14 +54,14 @@
             <argument type="service" id="Doctrine\ORM\EntityManagerInterface"/>
         </service>
 
-        <service id="Hakam\MultiTenancyBundle\Command\SyncMetadataSchemaCommand">
+<!--         <service id="Hakam\MultiTenancyBundle\Command\SyncMetadataSchemaCommand">
             <tag name="console.command" command="doctrine:migrations:sync-metadata-storage"/>
             <argument type="service" id="doctrine.migrations.dependency_factory"/>
             <argument type="service" id="service_container"/>
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="Doctrine\ORM\EntityManagerInterface"/>
             <argument>doctrine:migrations:sync-metadata-storage</argument>
-        </service>
+        </service> -->
 
         <service id="tenant_db_interface" class="Hakam\MultiTenancyBundle\Services\TenantDbConfigurationInterface"
                  public="true"/>
